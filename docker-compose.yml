@@ -1,0 +1,47 @@
+# pelosi-mirror: a Chromium you sign in to Fidelity with, plus the app that drives it.
+# Configure in .env (copy .env.example), then: docker compose up -d --build
+services:
+  # Clears Chromium's profile lock left behind by an unclean shutdown.
+  unlock:
+    image: alpine:3.20
+    command: sh -c 'rm -f /config/fidelity-profile/Singleton*; true'
+    volumes:
+      - ./browser:/config
+    restart: "no"
+
+  chromium:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: pelosi-browser
+    depends_on:
+      unlock:
+        condition: service_completed_successfully
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: ${TZ:-America/New_York}
+      TITLE: Fidelity browser
+      CUSTOM_USER: ${BROWSER_USER:?set BROWSER_USER in .env}
+      PASSWORD: ${BROWSER_PASSWORD:?set BROWSER_PASSWORD in .env}
+      CHROME_CLI: --user-data-dir=/config/fidelity-profile --remote-debugging-port=9222 --restore-last-session https://digital.fidelity.com/prgw/digital/login/full-page
+    volumes:
+      - ./browser:/config
+    ports:
+      - "3001:3001"   # browser desktop (HTTPS, self-signed certificate)
+      - "3013:3013"   # pelosi-mirror web page (served by the mirror service below)
+    shm_size: 1gb
+    security_opt:
+      - seccomp:unconfined
+    restart: unless-stopped
+
+  mirror:
+    build: .
+    container_name: pelosi-mirror
+    depends_on:
+      - chromium
+    # Shares the browser's network so it can reach Chromium's DevTools on 127.0.0.1:9222,
+    # which is never exposed outside the container.
+    network_mode: service:chromium
+    env_file: .env
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

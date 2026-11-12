@@ -1,0 +1,10 @@
+{
+  "comment": "Estimated Pelosi portfolio in dollars, built from her House PTR filings. Started from Autopilot's 'Pelosi Tracker+' weights and updated through the filings listed below. New installs start here; the app applies newer filings by itself.",
+  "as_of": "2026-11-12",
+  "applied_filings": ["20033725", "20034836", "20035143", "20035553", "20035780"],
+  "model": {
+    "BE": 7500002, "PANW": 6821909, "AVGO": 6553418, "GOOGL": 5197783, "CRWD": 4803246,
+    "AMZN": 4492312, "TEM": 4127679, "INTC": 3401865, "VST": 2983299, "AAPL": 2948572,
+    "SCHO": 2417700, "MSFT": 2326060, "NVDA": 2128310, "UBER": 1651458, "CDE": 1271391
+  }
+}
